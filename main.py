@@ -1,7 +1,8 @@
-from boardGame.position import Position
+from boardGame.board import Position, Board, Piece
 
-pos = Position(3, 2)
-print(pos)
-pos.row = 4
-pos.column = 6
-print(pos)
+board = Board(8, 8)
+
+
+print(board.columns)
+print(board.rows)
+print(board._pieces)
