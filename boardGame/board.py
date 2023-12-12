@@ -1,35 +1,12 @@
-
-
-class Position:
-    def __init__(self, row, column) -> None:
-        self._row = row
-        self._column = column
-
-    @property
-    def row(self):
-        return self._row
-
-    @row.setter
-    def row(self, value):
-        self._row = value
-
-    @property
-    def column(self):
-        return self._column
-
-    @column.setter
-    def column(self, value):
-        self._column = value
-
-    def __str__(self) -> str:
-        return f'{self._row}, {self._column}'
+from chess.chess_piece import ChessPiece
 
 
 class Board:
+    # todo -> to evaluate whether I wil really need rows and column here
     def __init__(self, rows: int, columns: int) -> None:
         self._rows = rows
         self._columns = columns
-        self._pieces = [[], []]
+        self._pieces = [[None] * self._rows for _ in range(self._columns)]
 
     @property
     def rows(self):
@@ -47,10 +24,11 @@ class Board:
     def columns(self, value):
         self._columns = value
 
-    @property
-    def pieces(Position):
-        return self._pieces[[], []]
+    # @property
+    # def pieces(Position):
+    #     return self._pieces[[], []]
 
+    # todo -> to evaluate whether I create a separate class for the interface.
     def piece(self, row, column):
         return self._pieces[[row], [column]]
 
@@ -62,9 +40,20 @@ class Board:
         # todo -> implementar a configuração inicial do board
         # Adicionar peçars às casas.
 
+    # avail
+    def print_piece(self, piece: ChessPiece):
+        if not piece:
+            print('-', end=' ')
+        else:
+            print(piece, end=' ')
+
     def display(self):
-        ...
-        # todo -> implementar a lógica para exibir o tabuleiro no console
+        for i, row in enumerate(self._pieces):
+            print(8 - i, end=' ')
+            for j in row:
+                self.print_piece(j)
+            print()
+        print('  a b c d e f g h ')
 
     def move_piece(self, player, from_square, to_square) -> bool:
         ...
