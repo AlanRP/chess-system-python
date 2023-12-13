@@ -39,8 +39,6 @@ class Board:
     def place_piece(self, piece: Piece):
         row = piece.position.row
         column = piece.position.column
-        print(row, column)
-        print('*'*20)
         self._pieces[row][column] = piece
 
     def setup_board(self):
@@ -48,8 +46,10 @@ class Board:
         # Adicionar peçars às casas.
 
         king = King(self, Color.BLACK, Position('e8'))
+        rook = Rook(self, Color.BLACK, Position('a8'))
 
         self.place_piece(king)
+        self.place_piece(rook)
 
         # self.place_piece(Rook(self, Color.BLACK), Position('a8'))
         # self.place_piece(King(self, Color.WHITE), Position('e1'))
