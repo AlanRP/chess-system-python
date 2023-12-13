@@ -1,4 +1,5 @@
-from chess.chess_piece import ChessPiece
+from boardGame.utility import Color, Position
+from boardGame.piece import (Piece, King, Rook)
 
 
 class Board:
@@ -35,13 +36,29 @@ class Board:
     def piece_pos(self, position):
         return self._pieces[[position.row], [position.column]]
 
+    def place_piece(self, piece: Piece):
+        row = piece.position.row
+        column = piece.position.column
+        print(row, column)
+        print('*'*20)
+        self._pieces[row][column] = piece
+
     def setup_board(self):
-        ...
         # todo -> implementar a configuração inicial do board
         # Adicionar peçars às casas.
 
+        king = King(self, Color.BLACK, Position('e8'))
+
+        self.place_piece(king)
+
+        # self.place_piece(Rook(self, Color.BLACK), Position('a8'))
+        # self.place_piece(King(self, Color.WHITE), Position('e1'))
+        # self.place_piece(Rook(self, Color.WHITE), Position('a1'))
+        # self.place_piece(Rook(self, Color.WHITE), Position('a8'))
+
     # avail
-    def print_piece(self, piece: ChessPiece):
+
+    def print_piece(self, piece: Piece):
         if not piece:
             print('-', end=' ')
         else:
