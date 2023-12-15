@@ -6,7 +6,6 @@ class Position:
     def __init__(self, square: str) -> None:
         self._row = None
         self._column = None
-        print(square)
         self._square = None
         self._validate_position(square.lower())
 

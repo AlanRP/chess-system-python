@@ -52,9 +52,6 @@ class ChessGame:
 
 
 if __name__ == '__main__':
-    # board = Board(8, 8)
-    # print(board.display())
-
     match = ChessGame(Board(8, 8), "Alan", "Ana")
     match.start_game()
     match.play()

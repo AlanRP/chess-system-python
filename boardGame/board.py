@@ -1,5 +1,5 @@
 from boardGame.utility import Color, Position
-from boardGame.piece import (Piece, King, Rook)
+from boardGame.piece import (Piece, King, Rook, Knight, Bishop, Queen, Pawn)
 
 
 class Board:
@@ -42,35 +42,53 @@ class Board:
         self._pieces[row][column] = piece
 
     def setup_board(self):
-        # todo -> implementar a configuração inicial do board
-        # Adicionar peçars às casas.
 
-        king = King(self, Color.BLACK, Position('e8'))
-        rook = Rook(self, Color.BLACK, Position('a8'))
+        self.place_piece(Rook(self, Color.BLACK, Position('a8')))
+        self.place_piece(Knight(self, Color.BLACK, Position('b8')))
+        self.place_piece(Bishop(self, Color.BLACK, Position('c8')))
+        self.place_piece(Queen(self, Color.BLACK, Position('d8')))
+        self.place_piece(King(self, Color.BLACK, Position('e8')))
+        self.place_piece(Bishop(self, Color.BLACK, Position('f8')))
+        self.place_piece(Knight(self, Color.BLACK, Position('g8')))
+        self.place_piece(Rook(self, Color.BLACK, Position('h8')))
 
-        self.place_piece(king)
-        self.place_piece(rook)
+        for col in 'abcdefgh':
+            self.place_piece(Pawn(self, Color.WHITE, Position(col + '2')))
+            self.place_piece(Pawn(self, Color.BLACK, Position(col + '7')))
 
-        # self.place_piece(Rook(self, Color.BLACK), Position('a8'))
-        # self.place_piece(King(self, Color.WHITE), Position('e1'))
-        # self.place_piece(Rook(self, Color.WHITE), Position('a1'))
-        # self.place_piece(Rook(self, Color.WHITE), Position('a8'))
-
-    # avail
+        self.place_piece(Rook(self, Color.WHITE, Position('a1')))
+        self.place_piece(Knight(self, Color.WHITE, Position('b1')))
+        self.place_piece(Bishop(self, Color.WHITE, Position('c1')))
+        self.place_piece(Queen(self, Color.WHITE, Position('d1')))
+        self.place_piece(King(self, Color.WHITE, Position('e1')))
+        self.place_piece(Bishop(self, Color.WHITE, Position('f1')))
+        self.place_piece(Knight(self, Color.WHITE, Position('g1')))
+        self.place_piece(Rook(self, Color.WHITE, Position('h1')))
 
     def print_piece(self, piece: Piece):
         if not piece:
-            print('-', end=' ')
+            print(' ', end=' ')
         else:
             print(piece, end=' ')
 
     def display(self):
+        invert = False
         for i, row in enumerate(self._pieces):
-            print(8 - i, end=' ')
+            print('\t', 8 - i, end='  ')
+
             for j in row:
+                if invert:
+                    print('\33[100m ', end='')  # White square color
+                else:
+                    print('\33[0m ', end='')  # Black square color
+                invert = not invert
                 self.print_piece(j)
-            print()
-        print('  a b c d e f g h ')
+
+            invert = not invert
+
+            print('\33[0m' + '')
+            # print()
+        print('\n\t     a  b  c  d  e  f  g  h ')
 
     def move_piece(self, player, from_square, to_square) -> bool:
         ...
