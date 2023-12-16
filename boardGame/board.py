@@ -15,7 +15,7 @@ class Board:
         return self._pieces[[position.row], [position.column]]
 
     def place_piece(self, piece: Piece):
-        if self.is_there_a_piece(piece.position):
+        if self._is_there_a_piece(piece.position):
             raise IndexError(
                 f'There is already a piece on '
                 f'Position{piece.position.position}')
@@ -75,22 +75,22 @@ class Board:
 
     def remove_piece(self, position: str):
 
-        if not self.position_exists(Position(position)):
+        if not self._position_exists(Position(position)):
             raise ValueError('Position not on the board')
 
         row, column = Position(position).position
 
-        piece: Piece = self._pieces[row][column]
+        piece = self._pieces[row][column]
         self._pieces[row][column] = None
         piece.position = None
         return piece
 
-    def position_exists(self, position: Position) -> bool:
+    def _position_exists(self, position: Position) -> bool:
         row, column = position.position
         return row >= 0 and row < 8 and column >= 0 and column < 8
 
-    def is_there_a_piece(self, position: Position):
-        if not self.position_exists(position):
+    def _is_there_a_piece(self, position: Position):
+        if not self._position_exists(position):
             raise IndexError('Position not on the board.')
         row, column = position.position
         return self._pieces[row][column] is not None
@@ -100,12 +100,19 @@ class Board:
         from_position = Position(from_square)
         to_position = Position(to_square)
 
-        if not (self.position_exists(from_position)
-                or self.position_exists(to_position)):
+        if not self._position_exists(to_position):
             return False
 
-        if not self.is_there_a_piece(from_position):
-            print(f"Não há peça na posição '{from_square}'")
+        if not self._is_there_a_piece(from_position):
+            # print(f"There is no piece on position '{from_square}'")
+            return False
+
+        if not self._position_exists(from_position):
+            return False
+        row, column = from_position.position
+        piece = self._pieces[row][column]
+
+        if piece.color != player.color:
             return False
 
         piece = self.remove_piece(from_square)

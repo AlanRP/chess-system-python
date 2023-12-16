@@ -1,60 +1,84 @@
 from boardGame.board import Board
+from boardGame.player import Player
+from boardGame.utility import Color
+import os
 
 
 class ChessGame:
-    def __init__(self, board: Board, player1, player2):
+    def __init__(self, board: Board):
         self._board = board
-        self._player1 = player1
-        self._player2 = player2
+        self._player1 = None
+        self._player2 = None
+        self.turn = True
+
+    def _get_player(self):
+        print()
+        name1 = input('Enter the name of the WHITE player: ')
+        name2 = input('Enter the name of the BLACK player: ')
+
+        self._player1 = Player(name1, Color(1))
+        self._player2 = Player(name2, Color(2))
 
     def start_game(self):
-        print("Bem vindo ao jogo de xadrez!\n")
-        self._board.setup_board()  # todo -> Analise
-        self._board.display()
+        os.system("cls")
+        print("\t*** Welcome to CHESS ***\n")
+        self._board.setup_board()
+        self._get_player()
 
-        # to delete, just testing
-        # self._board.remove_piece('a1')
+    def _current_player(self):
+        if self.turn:
+            return self._player1
+        return self._player2
+
+    def _display_game(self):
+        os.system("cls")
+        print("\t***     CHESS GAME    ***\n")
+        print(f'\t  {self._player2.name} <Black>')
+        print(f'\t  {self._player1.name} <White>\n')
+        self._board.display()
+        return True
 
     def play(self):
-        current_player = self._player1
-
         while not self.is_game_over():
             move_made = False
+            msg = None
 
             while not move_made:
+                player = self._current_player()
                 try:
-                    print(f'\nÉ a vez de {current_player}.')
-                    move = input("Digite sua jogada (ex: 'e2 e4'): ")
-                    move = move.split()
+                    self._display_game()
 
-                    if len(move) != 2:
-                        raise ValueError(
-                            "Jogada inválida. Digite duas posições.")
+                    if msg is not None:
+                        print(msg)
 
-                    from_square, to_square = move
+                    print(
+                        f"\nIt's {player.name}'s turn ({player.color.name})")
+
+                    from_square = input("Source: ")
+                    to_square = input("Goal: ")
+
                     move_made = self._board.move_piece(
-                        current_player, from_square, to_square)
+                        player, from_square, to_square)
 
                     if not move_made:
-                        print("Jogada inválida. Tente novamente.")
-
-                    self._board.display()
+                        msg = f"Invalid move ('{from_square}' "\
+                            f"'{to_square}'), try again."
+                    else:
+                        msg = None
 
                 except Exception as e:
-                    print(f'Erro: {e}')
+                    msg = f"Invalid move ('{from_square}' "\
+                        f"'{to_square}'), try again.\n{e}"
 
-            if current_player == self._player1:
-                current_player = self._player2
-            else:
-                current_player = self._player1
+            self.turn = not self.turn
 
-        print('Fim de Jogo!')
+        print('Game Over!')
 
     def is_game_over(self):
         return self._board.is_checkmate() or self._board.is_stalemate()
 
 
 if __name__ == '__main__':
-    match = ChessGame(Board(), "Alan", "Ana")
+    match = ChessGame(Board())
     match.start_game()
     match.play()
