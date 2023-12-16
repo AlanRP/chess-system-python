@@ -12,6 +12,9 @@ class ChessGame:
         self._board.setup_board()  # todo -> Analise
         self._board.display()
 
+        # to delete, just testing
+        # self._board.remove_piece('a1')
+
     def play(self):
         current_player = self._player1
 
@@ -40,7 +43,7 @@ class ChessGame:
                 except Exception as e:
                     print(f'Erro: {e}')
 
-            if current_player == self.__:
+            if current_player == self._player1:
                 current_player = self._player2
             else:
                 current_player = self._player1

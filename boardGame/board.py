@@ -15,11 +15,12 @@ class Board:
         return self._pieces[[position.row], [position.column]]
 
     def place_piece(self, piece: Piece):
-        row, column = piece.position.position
-        if self.is_there_a_piece(row, column):
+        if self.is_there_a_piece(piece.position):
             raise IndexError(
                 f'There is already a piece on '
                 f'Position{piece.position.position}')
+
+        row, column = piece.position.position
         self._pieces[row][column] = piece
 
     def setup_board(self):
@@ -72,17 +73,49 @@ class Board:
 
         print('\n\t     a  b  c  d  e  f  g  h ')
 
-    def position_exists(self, row, column):
+    def remove_piece(self, position: str):
+
+        if not self.position_exists(Position(position)):
+            raise ValueError('Position not on the board')
+
+        row, column = Position(position).position
+
+        piece: Piece = self._pieces[row][column]
+        self._pieces[row][column] = None
+        piece.position = None
+        return piece
+
+    def position_exists(self, position: Position) -> bool:
+        row, column = position.position
         return row >= 0 and row < 8 and column >= 0 and column < 8
 
-    def is_there_a_piece(self, row, column):
-        if not self.position_exists(row, column):
+    def is_there_a_piece(self, position: Position):
+        if not self.position_exists(position):
             raise IndexError('Position not on the board.')
+        row, column = position.position
         return self._pieces[row][column] is not None
 
     def move_piece(self, player, from_square, to_square) -> bool:
-        ...
-        # todo -> implementar a lógica para mover uma peça
+
+        from_position = Position(from_square)
+        to_position = Position(to_square)
+
+        if not (self.position_exists(from_position)
+                or self.position_exists(to_position)):
+            return False
+
+        if not self.is_there_a_piece(from_position):
+            print(f"Não há peça na posição '{from_square}'")
+            return False
+
+        piece = self.remove_piece(from_square)
+
+        piece.position = to_position
+        self.place_piece(piece)
+
+        return True
+
+        # todo -> Verificar se a peça from_square é do jogador atual
         # verificar se a jogada é válida
 
     def is_valid_move(self, piece, to_square) -> bool:
