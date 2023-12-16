@@ -3,18 +3,13 @@ from boardGame.utility import Position, Color
 
 class Piece:
 
-    def __init__(self, board, color: Color, position: Position) -> None:
+    def __init__(self, color: Color, position: Position) -> None:
         self.position = position
-        self._board = board
         self._color = color
 
     @property
     def color(self):
         return self._color
-
-    @property
-    def board(self):
-        return self._board
 
     def move(self):
         ...
