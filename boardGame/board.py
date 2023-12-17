@@ -5,6 +5,8 @@ from boardGame.piece import (Piece, King, Rook, Knight, Bishop, Queen, Pawn)
 class Board:
     def __init__(self) -> None:
         self._pieces = [[None] * 8 for _ in range(8)]
+        self.player1 = ''
+        self.player2 = ''
 
     # todo -> to evaluate whether I create a separate class for the interface.
 
@@ -55,23 +57,23 @@ class Board:
 
     def display(self):
         invert = False  # Flag to alternate between white and black square
-
+        print(self.player2, '<Black>')
         for i, row in enumerate(self._pieces):
             print('\t', 8 - i, end='  ')
 
             for j in row:
                 if invert:
-                    print('\33[100m ', end='')  # White square color
+                    print('\33[1;0;100m', end=' ')  # White square color
                 else:
-                    print('\33[0m ', end='')  # Black square color
+                    print('\33[1;0;40m', end=' ')  # Black square color
                 invert = not invert
                 self.print_piece(j)
 
             invert = not invert
 
             print('\33[0m' + '')
-
-        print('\n\t     a  b  c  d  e  f  g  h ')
+        print(self.player1, '<White>')
+        print('\t     a  b  c  d  e  f  g  h ')
 
     def remove_piece(self, position: str):
 
@@ -101,18 +103,34 @@ class Board:
         to_position = Position(to_square)
 
         if not self._position_exists(to_position):
+            input(
+                f"Position '{from_square}' doen't exist on board. <Enter>")
             return False
 
         if not self._is_there_a_piece(from_position):
-            # print(f"There is no piece on position '{from_square}'")
+            input(
+                f"There is no piece on '{from_square}'. <Enter>")
             return False
 
         if not self._position_exists(from_position):
+            input(
+                f"Position '{from_square}' doen't exist on board. <Enter>")
             return False
+
         row, column = from_position.position
-        piece = self._pieces[row][column]
+        piece: Piece = self._pieces[row][column]
 
         if piece.color != player.color:
+            input(
+                f"The {piece.color.name.lower()} piece {piece} "
+                f"on '{from_square}' is not yours. <Enter>")
+            return False
+
+        if not piece.is_there_any_possible_move():
+            input(
+                f"There is NO possible moves for the chosen "
+                f"piece {piece} on '{from_square}'. <Enter>"
+            )
             return False
 
         piece = self.remove_piece(from_square)
@@ -121,9 +139,6 @@ class Board:
         self.place_piece(piece)
 
         return True
-
-        # todo -> Verificar se a peça from_square é do jogador atual
-        # verificar se a jogada é válida
 
     def is_valid_move(self, piece, to_square) -> bool:
         # todo -> implementar lógica de verificação do movimento.

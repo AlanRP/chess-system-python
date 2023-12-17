@@ -8,7 +8,7 @@ class Position:
         self._column = None
         self.position = (self._row, self._column)
         self._square = None
-        if not self._to_position(square.lower()):
+        if not self._to_position(square.lower().strip()):
             raise ValueError("Invalid value.")
 
     @property

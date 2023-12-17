@@ -11,32 +11,11 @@ class ChessGame:
         self._player2 = None
         self.turn = True
 
-    def _get_player(self):
-        print()
-        name1 = input('Enter the name of the WHITE player: ')
-        name2 = input('Enter the name of the BLACK player: ')
-
-        self._player1 = Player(name1, Color(1))
-        self._player2 = Player(name2, Color(2))
-
     def start_game(self):
         os.system("cls")
         print("\t*** Welcome to CHESS ***\n")
         self._board.setup_board()
         self._get_player()
-
-    def _current_player(self):
-        if self.turn:
-            return self._player1
-        return self._player2
-
-    def _display_game(self):
-        os.system("cls")
-        print("\t***     CHESS GAME    ***\n")
-        print(f'\t  {self._player2.name} <Black>')
-        print(f'\t  {self._player1.name} <White>\n')
-        self._board.display()
-        return True
 
     def play(self):
         while not self.is_game_over():
@@ -49,10 +28,10 @@ class ChessGame:
                     self._display_game()
 
                     if msg is not None:
-                        print(msg)
+                        print('\n', msg)
 
-                    print(
-                        f"\nIt's {player.name}'s turn ({player.color.name})")
+                    print("\n",
+                          f"It's {player.name}'s turn ({player.color.name})")
 
                     from_square = input("Source: ")
                     to_square = input("Goal: ")
@@ -73,6 +52,29 @@ class ChessGame:
             self.turn = not self.turn
 
         print('Game Over!')
+
+    def _get_player(self):
+        print()
+        name1 = input('Enter the name of the WHITE player: ')
+        name2 = input('Enter the name of the BLACK player: ')
+
+        self._player1 = Player(name1, Color(1))
+        self._player2 = Player(name2, Color(2))
+        self._board.player1 = self._player1.name
+        self._board.player2 = self._player2.name
+
+    def _current_player(self):
+        if self.turn:
+            return self._player1
+        return self._player2
+
+    def _display_game(self):
+        os.system("cls")
+        print("\t***     CHESS GAME    ***\n")
+        # print(f'{self._player2.name} <Black>')
+        # print(f'\t  {self._player1.name} <White>\n')
+        self._board.display()
+        return True
 
     def is_game_over(self):
         return self._board.is_checkmate() or self._board.is_stalemate()
