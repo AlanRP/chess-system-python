@@ -7,23 +7,21 @@ import os
 class ChessGame:
     def __init__(self, board: Board):
         self._board = board
-        self._player1 = None
-        self._player2 = None
+        self._player1 = self._board.player1
+        self._player2 = self._board.player2
         self.turn = True
 
-    def start_game(self):
-        os.system("cls")
-        print("\t*** Welcome to CHESS ***\n")
-        self._board.setup_board()
-        self._get_player()
-
     def play(self):
+        self._board.setup_board()
         while not self.is_game_over():
             move_made = False
             msg = None
+            from_square = None
+            to_square = None
 
             while not move_made:
                 player = self._current_player()
+
                 try:
                     self._display_game()
 
@@ -31,7 +29,7 @@ class ChessGame:
                         print('\n', msg)
 
                     print("\n",
-                          f"It's {player.name}'s turn ({player.color.name})")
+                          f"It's {player}'s turn ({player.color.name})")
 
                     from_square = input("Source: ")
                     to_square = input("Goal: ")
@@ -53,16 +51,6 @@ class ChessGame:
 
         print('Game Over!')
 
-    def _get_player(self):
-        print()
-        name1 = input('Enter the name of the WHITE player: ')
-        name2 = input('Enter the name of the BLACK player: ')
-
-        self._player1 = Player(name1, Color(1))
-        self._player2 = Player(name2, Color(2))
-        self._board.player1 = self._player1.name
-        self._board.player2 = self._player2.name
-
     def _current_player(self):
         if self.turn:
             return self._player1
@@ -71,8 +59,6 @@ class ChessGame:
     def _display_game(self):
         os.system("cls")
         print("\t***     CHESS GAME    ***\n")
-        # print(f'{self._player2.name} <Black>')
-        # print(f'\t  {self._player1.name} <White>\n')
         self._board.display()
         return True
 
@@ -81,6 +67,16 @@ class ChessGame:
 
 
 if __name__ == '__main__':
-    match = ChessGame(Board())
-    match.start_game()
+
+    os.system("cls")
+    print("\t*** Welcome to CHESS ***\n\n")
+    name1 = input('Enter the name of the WHITE player: ')
+    name2 = input('Enter the name of the BLACK player: ')
+
+    player1 = Player(name1, Color(1))
+    player2 = Player(name2, Color(2))
+
+    match = ChessGame(Board(player1, player2))
+
+    # match.start_game()
     match.play()
