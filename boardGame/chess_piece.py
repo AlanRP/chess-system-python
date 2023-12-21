@@ -13,12 +13,65 @@ class ChessPiece(Piece):
         p = self.board._pieces[row][column]
         return p is not None and p.color != self.color
 
+# Symbols for pieces used:
+# ♔ ♕ ♖ ♗ ♘ ♙ (White)
+# ♚ ♛ ♜ ♝ ♞ ♟ (black)
+
 
 class Pawn(ChessPiece):
     def possible_moves(self):
-        res = [[False] * 8 for _ in range(8)]
-        res[0][0] = True    # todo just test, need to be deleted
-        return res
+        self.moves_mat = [[False] * 8 for _ in range(8)]
+
+        if self.color == Color.WHITE:
+            # Check one square above
+            p = Position((self.position.row - 1, self.position.column))
+            if self.board._position_exists(*p.position):
+                if not self.board._is_there_a_piece(*p.position):
+                    self.moves_mat[p.row][p.column] = True
+
+            # Check two square above and if it's first move
+            p = Position((self.position.row - 2, self.position.column))
+            if self.position.row == 6 and self.moves_mat[5][p.column]:
+                if self.board._position_exists(*p.position):
+                    if not self.board._is_there_a_piece(*p.position):
+                        self.moves_mat[p.row][p.column] = True
+
+            # Check capture diagonal square left
+            p = Position((self.position.row - 1, self.position.column - 1))
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
+
+            # Check capture diagonal square right
+            p = Position((self.position.row - 1, self.position.column + 1))
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
+
+        else:   # Black color piece
+            p = Position((self.position.row + 1, self.position.column))
+            if self.board._position_exists(*p.position):
+                if not self.board._is_there_a_piece(*p.position):
+                    self.moves_mat[p.row][p.column] = True
+
+            # Check two square below and if it's first move
+            p = Position((self.position.row + 2, self.position.column))
+            if self.position.row == 1 and self.moves_mat[2][p.column]:
+                if self.board._position_exists(*p.position):
+                    if not self.board._is_there_a_piece(*p.position):
+                        self.moves_mat[p.row][p.column] = True
+
+            # Check capture diagonal square left
+            p = Position((self.position.row + 1, self.position.column - 1))
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
+
+            # Check capture diagonal square right
+            p = Position((self.position.row + 1, self.position.column + 1))
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -30,7 +83,7 @@ class Rook(ChessPiece):
     def possible_moves(self) -> bool:
         self.moves_mat = [[False] * 8 for _ in range(8)]
 
-        # p = Position('a1')
+        # Searching moves for Rook
         # check above
         p = Position((self.position.row - 1, self.position.column))
         while (self.board._position_exists(*p.position) and not
@@ -84,7 +137,8 @@ class Rook(ChessPiece):
 
 class Knight(ChessPiece):
     def possible_moves(self):
-        return [[False] * 8 for _ in range(8)]
+        # Todo -> Change to False when Method completed
+        self.moves_mat = [[True] * 8 for _ in range(8)]
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -94,7 +148,8 @@ class Knight(ChessPiece):
 
 class Bishop(ChessPiece):
     def possible_moves(self):
-        return [[False] * 8 for _ in range(8)]
+        # Todo -> Change to False when Method completed
+        self.moves_mat = [[True] * 8 for _ in range(8)]
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -104,7 +159,8 @@ class Bishop(ChessPiece):
 
 class Queen(ChessPiece):
     def possible_moves(self):
-        return [[False] * 8 for _ in range(8)]
+        # Todo -> Change to False when Method completed
+        self.moves_mat = [[True] * 8 for _ in range(8)]
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -114,7 +170,8 @@ class Queen(ChessPiece):
 
 class King(ChessPiece):
     def possible_moves(self):
-        return [[False] * 8 for _ in range(8)]
+        # Todo -> Change to False when Method completed
+        self.moves_mat = [[True] * 8 for _ in range(8)]
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
