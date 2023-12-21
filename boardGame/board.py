@@ -52,38 +52,74 @@ class Board:
         self.place_piece(Knight(Color.WHITE, Position('g1'), self))
         self.place_piece(Rook(Color.WHITE, Position('h1'), self))
 
-    def get_piece(self, piece: Piece):
+    def _get_square_color(self, invert, possible_move):
+        if possible_move:
+            if invert:
+                return "on_blue"
+            return "on_cyan"
+        if not invert:
+            return "on_black"
+        return None
+
+    def display(self, possible_moves):
+        invert = False  # Flag to alternate between white and black square
+        cprint(f'\t{self.player2} <Black>\n', "dark_grey")
+
+        for i, row in enumerate(self._pieces):
+
+            cprint(f'\t{8 - i}', "dark_grey", end='  ')
+
+            for j, p in enumerate(row):
+
+                # square = None if invert else "on_black"
+                square = self._get_square_color(invert, possible_moves[i][j])
+
+                cprint(
+                    self._get_piece(p),
+                    self._get_piece_color(p),
+                    square, end='')
+
+                invert = not invert
+
+            self._print_removed(i - 2)
+
+            invert = not invert
+            print()
+
+        cprint('\t    a  b  c  d  e  f  g  h ', "dark_grey")
+        cprint(f"\n\t{self.player1} <White>", "dark_grey")
+
+        # self._print_removed()
+
+    def _get_piece(self, piece: Piece):
         return '   ' if piece is None else f' {piece} '
 
-    def get_piece_color(self, piece: Piece):
+    def _get_piece_color(self, piece: Piece):
         if piece is None:
             return None
         if piece.color.name == 'WHITE':
             return "white"
         return "red"
 
-    def display(self):
-        invert = False  # Flag to alternate between white and black square
-        print(self.player2, '<Black>')
-        for i, row in enumerate(self._pieces):
-
-            print('\t', 8 - i, end='  ')
-
-            for p in row:
-                square = None if invert else "on_black"
-
-                cprint(
-                    self.get_piece(p),
-                    self.get_piece_color(p),
-                    square, end='')
-
-                invert = not invert
-
-            invert = not invert
-            print()
-
-        print(self.player1, '<White>')
-        print('\t     a  b  c  d  e  f  g  h ')
+    def _print_removed(self, index):
+        if not len(self.removed_pieces):
+            return
+        if index == 0:
+            cprint('  Captured:', 'dark_grey', end='')
+        elif index == 3:
+            cprint('   [ ', 'dark_grey', end='')
+            for p in self.removed_pieces:
+                if p.color.name == 'BLACK':
+                    cprint(p, 'red', end=' ')
+            cprint(']', 'dark_grey', end='')
+        elif index == 1:
+            cprint('   [ ', 'dark_grey', end='')
+            for p in self.removed_pieces:
+                if p.color.name == 'WHITE':
+                    print(p, end=' ')
+            cprint(']', 'dark_grey', end='')
+        else:
+            return
 
     def remove_piece(self, row, column):
         piece = self._pieces[row][column]
@@ -99,15 +135,8 @@ class Board:
             raise IndexError('Position not on the board.')
         return self._pieces[row][column] is not None
 
-    def move_piece(self, player, from_square, to_square) -> bool:
-
+    def _checkSeletion(self,  player, from_square) -> bool:
         row, column = Position(from_square).position
-        to_row, to_column = Position(to_square).position
-
-        if not self._position_exists(to_row, to_column):
-            input(
-                f"Position '{from_square}' doen't exist on board. <Enter>")
-            return False
 
         if not self._is_there_a_piece(row, column):
             input(
@@ -127,12 +156,30 @@ class Board:
                 f"on '{from_square}' is not yours. <Enter>")
             return False
 
+        return True
+
+    def _possibleMoves(self, player, from_square) -> bool:
+        row, column = Position(from_square).position
+
+        piece: Piece = self._pieces[row][column]
+
         piece.possible_moves()
         if not piece.is_there_any_possible_move():
             input(
                 f"There is NO possible moves for the chosen "
                 f"piece {piece} on '{from_square}'. <Enter>"
             )
+            raise ''
+        return piece.moves_mat
+
+    def move_piece(self, player, from_square, to_square) -> bool:
+
+        row, column = Position(from_square).position
+        to_row, to_column = Position(to_square).position
+
+        if not self._position_exists(to_row, to_column):
+            input(
+                f"Position '{from_square}' doen't exist on board. <Enter>")
             return False
 
         if not self._validate_target_position(row, column, to_row, to_column):

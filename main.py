@@ -2,6 +2,7 @@ from boardGame.board import Board
 from boardGame.player import Player
 from boardGame.utility import Color
 import os
+from termcolor import cprint
 
 
 class ChessGame:
@@ -21,17 +22,28 @@ class ChessGame:
 
             while not move_made:
                 player = self._current_player()
+                possible_moves = [[False] * 8 for _ in range(8)]
 
                 try:
-                    self._display_game()
+                    self._display_game(possible_moves)
 
                     if msg is not None:
-                        print('\n', msg)
+                        print()
+                        cprint(msg, "dark_grey")
 
-                    print("\n",
-                          f"It's {player}'s turn ({player.color.name})")
+                    print()
+                    print(f"It's {player}'s turn ({player.color.name})")
 
                     from_square = input("Source: ")
+
+                    if not self._board._checkSeletion(player, from_square):
+                        raise ''
+
+                    possible_moves = self._board._possibleMoves(
+                        player, from_square)
+
+                    self._display_game(possible_moves)
+
                     to_square = input("Goal: ")
 
                     move_made = self._board.move_piece(
@@ -44,8 +56,11 @@ class ChessGame:
                         msg = None
 
                 except Exception as e:
-                    msg = f"Invalid move ('{from_square}' "\
-                        f"'{to_square}'), try again.\n{e}"
+                    if to_square is None:
+                        msg = f"Invalid seletion ('{from_square}'), try again"
+                    else:
+                        msg = (f"Invalid move ('{from_square}' "
+                               f"'{to_square}'), try again.\n{e}")
 
             self.turn = not self.turn
 
@@ -56,10 +71,10 @@ class ChessGame:
             return self._player1
         return self._player2
 
-    def _display_game(self):
+    def _display_game(self, possible_moves):
         os.system("cls")
         print("\t***     CHESS GAME    ***\n")
-        self._board.display()
+        self._board.display(possible_moves)
         return True
 
     def is_game_over(self):
