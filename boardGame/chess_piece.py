@@ -169,9 +169,62 @@ class Queen(ChessPiece):
 
 
 class King(ChessPiece):
+    def can_move(self, position: Position):
+        row, column = position.position
+        p = self.board._pieces[row][column]
+        return p is None or p.color != self.color
+
     def possible_moves(self):
-        # Todo -> Change to False when Method completed
-        self.moves_mat = [[True] * 8 for _ in range(8)]
+        self.moves_mat = [[False] * 8 for _ in range(8)]
+
+        # Searching moves for King
+        # check above
+        p = Position((self.position.row - 1, self.position.column))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check below
+        p = Position((self.position.row + 1, self.position.column))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check left
+        p = Position((self.position.row, self.position.column - 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check right
+        p = Position((self.position.row, self.position.column + 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check nw
+        p = Position((self.position.row - 1, self.position.column - 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check ne
+        p = Position((self.position.row - 1, self.position.column + 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check sw
+        p = Position((self.position.row + 1, self.position.column - 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
+
+        # check se
+        p = Position((self.position.row + 1, self.position.column + 1))
+        if (self.board._position_exists(*p.position) and
+                self.can_move(p)):
+            self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
