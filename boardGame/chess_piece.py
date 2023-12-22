@@ -1,4 +1,5 @@
-from boardGame.utility import Color, Position
+from boardGame.utility import (
+    Color, Position, moves_all, cross_moves, x_moves, knight_moves)
 from boardGame.piece import Piece
 
 
@@ -84,50 +85,16 @@ class Rook(ChessPiece):
         self.moves_mat = [[False] * 8 for _ in range(8)]
 
         # Searching moves for Rook
-        # check above
-        p = Position((self.position.row - 1, self.position.column))
-        while (self.board._position_exists(*p.position) and not
-                self.board._is_there_a_piece(*p.position)):
-            self.moves_mat[p.row][p.column] = True
-            # p.set_values(p.row - 1, p.column)
-            p.row -= 1
-        if self.board._position_exists(*p.position):
-            if self._is_there_opponent_piece(p):
+        for r, c in cross_moves.values():
+            p = Position((self.position.row + r, self.position.column + c))
+            while (self.board._position_exists(*p.position) and not
+                    self.board._is_there_a_piece(*p.position)):
                 self.moves_mat[p.row][p.column] = True
-
-        # check Left
-        p = Position((self.position.row, self.position.column - 1))
-        while (self.board._position_exists(*p.position) and not
-                self.board._is_there_a_piece(*p.position)):
-            self.moves_mat[p.row][p.column] = True
-            # p.set_values(p.row, p.column - 1)
-            p.column -= 1
-        if self.board._position_exists(*p.position):
-            if self._is_there_opponent_piece(p):
-                self.moves_mat[p.row][p.column] = True
-
-        # check Right
-        p = Position((self.position.row, self.position.column + 1))
-        while (self.board._position_exists(*p.position) and not
-                self.board._is_there_a_piece(*p.position)):
-            self.moves_mat[p.row][p.column] = True
-            # p.set_values(p.row, p.column + 1)
-            p.column += 1
-        if self.board._position_exists(*p.position):
-            if self._is_there_opponent_piece(p):
-                self.moves_mat[p.row][p.column] = True
-
-        # check Below
-        p = Position((self.position.row + 1, self.position.column))
-        while (self.board._position_exists(*p.position) and not
-                self.board._is_there_a_piece(*p.position)):
-            self.moves_mat[p.row][p.column] = True
-            # p.set_values(p.row + 1, p.column)
-            p.row += 1
-        if self.board._position_exists(*p.position):
-            if self._is_there_opponent_piece(p):
-                self.moves_mat[p.row][p.column] = True
-        # return self.moves_mat
+                p.row += r
+                p.column += c
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -136,9 +103,20 @@ class Rook(ChessPiece):
 
 
 class Knight(ChessPiece):
+    def can_move(self, position: Position):
+        row, column = position.position
+        p = self.board._pieces[row][column]
+        return p is None or p.color != self.color
+
     def possible_moves(self):
-        # Todo -> Change to False when Method completed
-        self.moves_mat = [[True] * 8 for _ in range(8)]
+        self.moves_mat = [[False] * 8 for _ in range(8)]
+
+        # Searching moves for Knight
+        for r, c in knight_moves.values():
+            p = Position((self.position.row + r, self.position.column + c))
+            if (self.board._position_exists(*p.position) and
+                    self.can_move(p)):
+                self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -147,9 +125,20 @@ class Knight(ChessPiece):
 
 
 class Bishop(ChessPiece):
-    def possible_moves(self):
-        # Todo -> Change to False when Method completed
-        self.moves_mat = [[True] * 8 for _ in range(8)]
+    def possible_moves(self) -> bool:
+        self.moves_mat = [[False] * 8 for _ in range(8)]
+
+        # Searching moves for Bishop
+        for r, c in x_moves.values():
+            p = Position((self.position.row + r, self.position.column + c))
+            while (self.board._position_exists(*p.position) and not
+                    self.board._is_there_a_piece(*p.position)):
+                self.moves_mat[p.row][p.column] = True
+                p.row += r
+                p.column += c
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -158,9 +147,20 @@ class Bishop(ChessPiece):
 
 
 class Queen(ChessPiece):
-    def possible_moves(self):
-        # Todo -> Change to False when Method completed
-        self.moves_mat = [[True] * 8 for _ in range(8)]
+    def possible_moves(self) -> bool:
+        self.moves_mat = [[False] * 8 for _ in range(8)]
+
+        # Searching moves for Queen
+        for r, c in moves_all.values():
+            p = Position((self.position.row + r, self.position.column + c))
+            while (self.board._position_exists(*p.position) and not
+                    self.board._is_there_a_piece(*p.position)):
+                self.moves_mat[p.row][p.column] = True
+                p.row += r
+                p.column += c
+            if self.board._position_exists(*p.position):
+                if self._is_there_opponent_piece(p):
+                    self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -178,53 +178,11 @@ class King(ChessPiece):
         self.moves_mat = [[False] * 8 for _ in range(8)]
 
         # Searching moves for King
-        # check above
-        p = Position((self.position.row - 1, self.position.column))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check below
-        p = Position((self.position.row + 1, self.position.column))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check left
-        p = Position((self.position.row, self.position.column - 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check right
-        p = Position((self.position.row, self.position.column + 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check nw
-        p = Position((self.position.row - 1, self.position.column - 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check ne
-        p = Position((self.position.row - 1, self.position.column + 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check sw
-        p = Position((self.position.row + 1, self.position.column - 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
-
-        # check se
-        p = Position((self.position.row + 1, self.position.column + 1))
-        if (self.board._position_exists(*p.position) and
-                self.can_move(p)):
-            self.moves_mat[p.row][p.column] = True
+        for r, c in moves_all.values():
+            p = Position((self.position.row + r, self.position.column + c))
+            if (self.board._position_exists(*p.position) and
+                    self.can_move(p)):
+                self.moves_mat[p.row][p.column] = True
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:

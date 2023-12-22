@@ -32,9 +32,9 @@ class ChessGame:
                         cprint(msg, "dark_grey")
 
                     print()
-                    print(f"It's {player}'s turn ({player.color.name})")
+                    print(f"Waiting for {player} ({player.color.name})")
 
-                    from_square = input("Source: ")
+                    from_square = input("Source move: ")
 
                     if not self._board._checkSeletion(player, from_square):
                         raise ''
@@ -44,7 +44,7 @@ class ChessGame:
 
                     self._display_game(possible_moves)
 
-                    to_square = input("Goal: ")
+                    to_square = input("Goal move: ")
 
                     move_made = self._board.move_piece(
                         player, from_square, to_square)

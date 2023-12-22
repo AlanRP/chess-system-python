@@ -55,11 +55,11 @@ class Board:
     def _get_square_color(self, invert, possible_move):
         if possible_move:
             if invert:
-                return "on_blue"
-            return "on_cyan"
+                return "on_green"
+            return "on_light_green"
         if not invert:
-            return "on_black"
-        return None
+            return "on_cyan"
+        return "on_blue"
 
     def display(self, possible_moves):
         invert = False  # Flag to alternate between white and black square

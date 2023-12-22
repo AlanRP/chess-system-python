@@ -81,3 +81,56 @@ class Position:
 class Color(enum.Enum):
     WHITE = 1
     BLACK = 2
+
+
+moves_all = {
+    """
+    Dict to scan to all directions
+    Used for king and Queen
+    """
+    "UP": (-1, 0),
+    "DN": (+1, 0),
+    "L": (0, -1),
+    "R": (0, 1),
+    "NW": (-1, -1),
+    "NE": (-1, 1),
+    "SW": (1, -1),
+    "SE": (1, 1),
+}
+
+cross_moves = {
+    """
+    Dict to scan cross moves directions
+    Used for Rook
+    """
+    "UP": (-1, 0),
+    "DN": (+1, 0),
+    "L": (0, -1),
+    "R": (0, 1),
+}
+
+x_moves = {
+    """
+    Dict to scan cross moves directions
+    Used for Rook
+    """
+    "NW": (-1, -1),
+    "NE": (-1, 1),
+    "SW": (1, -1),
+    "SE": (1, 1),
+}
+
+knight_moves = {
+    """
+    Dict to scan to all directions
+    Used for king and Queen
+    """
+    "A": (2, 1),
+    "B": (2, -1),
+    "C": (-2, 1),
+    "D": (-2, -1),
+    "E": (1, 2),
+    "F": (-1, 2),
+    "G": (1, -2),
+    "H": (-1, -2),
+}
