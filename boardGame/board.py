@@ -11,46 +11,72 @@ class Board:
         self.player1 = player1
         self.player2 = player2
         self.removed_pieces = []
+        self.check = False
 
     # todo -> to evaluate whether I create a separate class for the interface.
 
-    def piece(self, row, column):
-        return self._pieces[[row], [column]]
+    def piece(self, row: int, column: int) -> Piece | None:
+        return self._pieces[row][column]
+
+    def _opponent_color(self, color):
+        return Color.BLACK if color == Color.WHITE else Color.WHITE
+
+    def _test_check(self, color: Color) -> bool:
+        king_ = self._search_piece(color)
+        row, col = king_.position.position
+        for r in self._pieces:
+            for p in r:
+                if p is not None and p.color == self._opponent_color(color):
+                    p.possible_moves()
+                    if p.moves_mat[row][col]:
+                        return True
+        return False
+
+    def _search_piece(self, color: Color, piece: Piece = King) -> Piece:
+        for row in self._pieces:
+            for p in row:
+                if (p is not None and isinstance(p, piece)
+                        and p.color == color):
+                    return p
+        raise LookupError(f"Not found {color.name} king on the board.")
 
     def piece_pos(self, position):
         return self._pieces[[position.row], [position.column]]
 
-    def place_piece(self, piece: Piece):
+    def _place_piece(self, piece: Piece):
         row, column = piece.position.position
-
+        captured = None
         if self._is_there_a_piece(*piece.position.position):
-            self.removed_pieces.append(self.remove_piece(row, column))
+            captured = self._remove_piece(row, column)
+            self.removed_pieces.append(captured)
 
         self._pieces[row][column] = piece
 
+        return captured
+
     def setup_board(self):
 
-        self.place_piece(Rook(Color.BLACK, Position('a8'), self))
-        self.place_piece(Knight(Color.BLACK, Position('b8'), self))
-        self.place_piece(Bishop(Color.BLACK, Position('c8'), self))
-        self.place_piece(Queen(Color.BLACK, Position('d8'), self))
-        self.place_piece(King(Color.BLACK, Position('e8'), self))
-        self.place_piece(Bishop(Color.BLACK, Position('f8'), self))
-        self.place_piece(Knight(Color.BLACK, Position('g8'), self))
-        self.place_piece(Rook(Color.BLACK, Position('h8'), self))
+        self._place_piece(Rook(Color.BLACK, Position('a8'), self))
+        self._place_piece(Knight(Color.BLACK, Position('b8'), self))
+        self._place_piece(Bishop(Color.BLACK, Position('c8'), self))
+        self._place_piece(Queen(Color.BLACK, Position('d8'), self))
+        self._place_piece(King(Color.BLACK, Position('e8'), self))
+        self._place_piece(Bishop(Color.BLACK, Position('f8'), self))
+        self._place_piece(Knight(Color.BLACK, Position('g8'), self))
+        self._place_piece(Rook(Color.BLACK, Position('h8'), self))
 
         for col in 'abcdefgh':
-            self.place_piece(Pawn(Color.WHITE, Position(col + '2'), self))
-            self.place_piece(Pawn(Color.BLACK, Position(col + '7'), self))
+            self._place_piece(Pawn(Color.WHITE, Position(col + '2'), self))
+            self._place_piece(Pawn(Color.BLACK, Position(col + '7'), self))
 
-        self.place_piece(Rook(Color.WHITE, Position('a1'), self))
-        self.place_piece(Knight(Color.WHITE, Position('b1'), self))
-        self.place_piece(Bishop(Color.WHITE, Position('c1'), self))
-        self.place_piece(Queen(Color.WHITE, Position('d1'), self))
-        self.place_piece(King(Color.WHITE, Position('e1'), self))
-        self.place_piece(Bishop(Color.WHITE, Position('f1'), self))
-        self.place_piece(Knight(Color.WHITE, Position('g1'), self))
-        self.place_piece(Rook(Color.WHITE, Position('h1'), self))
+        self._place_piece(Rook(Color.WHITE, Position('a1'), self))
+        self._place_piece(Knight(Color.WHITE, Position('b1'), self))
+        self._place_piece(Bishop(Color.WHITE, Position('c1'), self))
+        self._place_piece(Queen(Color.WHITE, Position('d1'), self))
+        self._place_piece(King(Color.WHITE, Position('e1'), self))
+        self._place_piece(Bishop(Color.WHITE, Position('f1'), self))
+        self._place_piece(Knight(Color.WHITE, Position('g1'), self))
+        self._place_piece(Rook(Color.WHITE, Position('h1'), self))
 
     def _get_square_color(self, invert, possible_move):
         if possible_move:
@@ -121,7 +147,7 @@ class Board:
         else:
             return
 
-    def remove_piece(self, row, column):
+    def _remove_piece(self, row: int, column: int) -> Piece:
         piece = self._pieces[row][column]
         self._pieces[row][column] = None
         piece.position = None
@@ -158,7 +184,7 @@ class Board:
 
         return True
 
-    def _possibleMoves(self, player, from_square) -> bool:
+    def _possibleMoves(self, from_square) -> bool:
         row, column = Position(from_square).position
 
         piece: Piece = self._pieces[row][column]
@@ -172,7 +198,20 @@ class Board:
             raise ''
         return piece.moves_mat
 
-    def move_piece(self, player, from_square, to_square) -> bool:
+    def _undo_move(self, from_square, to_square, captured_piece: Piece):
+        row, column = Position(to_square).position
+
+        p = self._remove_piece(row, column)
+        p.position = Position(from_square)
+
+        self._place_piece(p)
+
+        if captured_piece is not None:
+            self._place_piece(Position(from_square))
+            if len(self._removed_pieces):
+                self._removed_pieces.pop()
+
+    def _move_piece(self, from_square, to_square) -> bool:
 
         row, column = Position(from_square).position
         to_row, to_column = Position(to_square).position
@@ -185,10 +224,17 @@ class Board:
         if not self._validate_target_position(row, column, to_row, to_column):
             return False
 
-        piece = self.remove_piece(row, column)
+        piece = self._remove_piece(row, column)
 
         piece.position = Position(to_square)
-        self.place_piece(piece)
+
+        captured = self._place_piece(piece)
+        check = self._test_check(piece.color)
+
+        if check:
+            self._undo_move(from_square, to_square, captured)
+            input("You can't put yoursef in check. <Enter>")
+            raise LookupError("Undone move")
 
         return True
 

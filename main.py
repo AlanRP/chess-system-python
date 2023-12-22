@@ -11,12 +11,14 @@ class ChessGame:
         self._player1 = self._board.player1
         self._player2 = self._board.player2
         self.turn = True
+        self.check = False
 
     def play(self):
         self._board.setup_board()
+        msg = None
+
         while not self.is_game_over():
             move_made = False
-            msg = None
             from_square = None
             to_square = None
 
@@ -39,21 +41,27 @@ class ChessGame:
                     if not self._board._checkSeletion(player, from_square):
                         raise ''
 
-                    possible_moves = self._board._possibleMoves(
-                        player, from_square)
+                    possible_moves = self._board._possibleMoves(from_square)
 
                     self._display_game(possible_moves)
 
                     to_square = input("Goal move: ")
 
-                    move_made = self._board.move_piece(
-                        player, from_square, to_square)
+                    self._board._search_piece(Color.WHITE)
+
+                    move_made = self._board._move_piece(from_square, to_square)
 
                     if not move_made:
                         msg = f"Invalid move ('{from_square}' "\
                             f"'{to_square}'), try again."
                     else:
-                        msg = None
+                        opponent_color = self._board._opponent_color(
+                            player.color)
+                        self.check = self._board._test_check(opponent_color)
+                        if self.check:
+                            msg = f'{opponent_color.name} is in CHECK!'
+                        else:
+                            msg = None
 
                 except Exception as e:
                     if to_square is None:
