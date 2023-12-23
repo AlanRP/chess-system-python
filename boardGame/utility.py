@@ -3,7 +3,7 @@ import enum
 
 
 class Position:
-    def __init__(self, value) -> None:
+    def __init__(self, value: str | tuple | list) -> None:
 
         self._row = None
         self._column = None
@@ -112,7 +112,7 @@ cross_moves = {
 x_moves = {
     """
     Dict to scan cross moves directions
-    Used for Rook
+    Used for Bishop
     """
     "NW": (-1, -1),
     "NE": (-1, 1),
@@ -123,7 +123,7 @@ x_moves = {
 knight_moves = {
     """
     Dict to scan to all directions
-    Used for king and Queen
+    Used for knight
     """
     "A": (2, 1),
     "B": (2, -1),
