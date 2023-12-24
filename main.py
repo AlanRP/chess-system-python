@@ -1,7 +1,7 @@
 from termcolor import cprint
 from boardGame.UI import UI
 from boardGame.board import Board
-from boardGame.chess_piece import King
+from boardGame.chess_piece import ChessPiece, King
 from boardGame.piece import Piece
 from boardGame.player import Player
 from boardGame.utility import Color, Position
@@ -13,7 +13,8 @@ class ChessGame:
             self,
             board: Board,
             player1: Player,
-            player2: Player
+            player2: Player,
+            _piece: ChessPiece | None = None
     ):
         self._board = board
         self._player1 = player1
@@ -98,6 +99,9 @@ class ChessGame:
             self.warning("You cannot let your king in check.")
             return False
 
+        self._piece.increase_move_count()
+        self._piece = None
+
         if self._is_checkmate(self._opponent_color(color)):
             self.checkmate = True
             self._UI.display_game_over(self._current_player())
@@ -107,9 +111,9 @@ class ChessGame:
     def _perform_move(self, from_square, to_square) -> Piece:
 
         row, column = Position(from_square).position
-        piece = self._board._remove_piece(row, column)
-        piece.position = Position(to_square)
-        return self._board._place_piece(piece)  # captured piece
+        self._piece = self._board._remove_piece(row, column)
+        self._piece.position = Position(to_square)
+        return self._board._place_piece(self._piece)  # captured piece
 
     def _validate_target(self, from_square, to_square):
 

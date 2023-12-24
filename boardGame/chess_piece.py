@@ -8,6 +8,17 @@ class ChessPiece(Piece):
         super().__init__(color, position)
         self._pieces = [[None] * 8] * 8
         self.board = board
+        self._move_count = 0
+
+    @property
+    def move_count(self):
+        return self._move_count
+
+    def increase_move_count(self):
+        self._move_count += 1
+
+    def decrease_move_count(self):
+        self._move_count += 1
 
     def _is_there_opponent_piece(self, position: Position) -> bool:
         row, column = position.position
