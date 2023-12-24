@@ -6,7 +6,7 @@ from boardGame.piece import Piece
 class Board:
     def __init__(self) -> None:
         self._pieces = [[None] * 8 for _ in range(8)]
-        self.removed_pieces = []
+        self._removed_pieces = []
 
     def piece(self, row: int, column: int) -> Piece | None:
         return self._pieces[row][column]
@@ -19,7 +19,7 @@ class Board:
         captured = None
         if self._is_there_a_piece(*piece.position.position):
             captured = self._remove_piece(row, column)
-            self.removed_pieces.append(captured)
+            self._removed_pieces.append(captured)
         self._pieces[row][column] = piece
         return captured
 
@@ -70,17 +70,10 @@ class Board:
         self._place_piece(p)
 
         if captured_piece is not None:
-            self._place_piece(Position(from_square))
+            captured_piece.position = Position(to_square)
+            self._place_piece(captured_piece)
             if len(self._removed_pieces):
                 self._removed_pieces.pop()
-
-    def is_valid_move(self, piece, to_square) -> bool:
-        # todo -> implementar lógica de verificação do movimento.
-        ...
-
-    def is_checkmate(self):
-        ...
-        # todo -> implementar verificação de checkmate
 
     def is_stalemate(self):
         ...

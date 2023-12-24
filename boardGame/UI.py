@@ -2,18 +2,34 @@ import os
 from termcolor import cprint
 from boardGame.board import Board
 from boardGame.piece import Piece
+from boardGame.player import Player
 
 
 class UI:
-    def __init__(self, board: Board) -> None:
-        self._board = board
+    def __init__(
+        self,
+        board: Board,
+        player1: Player,
+        player2: Player
+    ) -> None:
 
-    def display_game(self, possible_moves, player1, player2):
+        self._board = board
+        self.player1 = player1
+        self.player2 = player2
+
+    def display_game_over(self, player: Player):
+        self.display_game()
+        cprint("CHECKMATE!!!", "light_yellow")
+        print()
+        cprint(f"{player.name} <{player.color.name}> won!", "light_yellow")
+        print()
+
+    def display_game(self, possible_moves=None):
         os.system("cls")
-        print("\t  ***     CHESS GAME    ***\n")
+        cprint("\t ***     CHESS GAME    *** \n")
 
         invert = False  # Flag to alternate between white and black square
-        cprint(f'\t{player2} <Black>\n', "dark_grey")
+        cprint(f'\t{self.player2} <Black>\n', "dark_grey")
 
         for i, row in enumerate(self._board._pieces):
 
@@ -21,12 +37,19 @@ class UI:
 
             for j, p in enumerate(row):
 
-                square = self._get_square_color(invert, possible_moves[i][j])
+                highlight = False
+                if possible_moves is not None:
+                    highlight = possible_moves[i][j]
+
+                square = self._get_square_color(invert, highlight)
 
                 cprint(
                     self._get_piece(p),
                     self._get_piece_color(p),
-                    square, end='')
+                    square,
+                    attrs=self._get_piece_attr(p),
+                    end=''
+                )
 
                 invert = not invert
 
@@ -36,13 +59,28 @@ class UI:
             print()
 
         cprint('\t   a  b  c  d  e  f  g  h ', "dark_grey")
-        cprint(f"\n\t{player1} <White>", "dark_grey")
+        cprint(f"\n\t{self.player1} <White>", "dark_grey")
 
     def print_msg(self, msg, check):
         if msg is not None:
             print()
-            color = "yellow" if check else "dark_grey"
-            cprint(msg, color)
+            cprint(msg, "dark_grey")
+        if check:
+            cprint('CHECK!!!', "yellow")
+
+    def get_source_move(self, player):
+        print()
+        print(f"Waiting for {player} ({player.color.name})")
+        print()
+        from_square = input("Source move: ")
+        return from_square.lower().strip()
+
+    def get_target_move(self, player):
+        print()
+        print(f"Waiting for {player} ({player.color.name})")
+        print()
+        to_square = input("Target move: ")
+        return to_square.lower().strip()
 
     def _get_square_color(self, invert, possible_move):
         if possible_move:
@@ -63,8 +101,15 @@ class UI:
             return "white"
         return "red"
 
+    def _get_piece_attr(self, piece: Piece):
+        if piece is None:
+            return None
+        if piece.color.name == 'WHITE':
+            return ["bold"]
+        return ["dark"]
+
     def _print_removed(self, index):
-        removed = self._board.removed_pieces
+        removed = self._board._removed_pieces
         if not len(removed):
             return
         if index == 0:

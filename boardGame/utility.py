@@ -9,7 +9,7 @@ class Position:
         self._column = None
         self._square = None
         if isinstance(value, str):
-            if not self._to_position(value.lower().strip()):
+            if not self._to_position(value):
                 raise ValueError("Invalid value.")
         elif isinstance(value, (list, tuple)):
             if len(value) == 2:
@@ -19,10 +19,11 @@ class Position:
     @property
     def square(self):
         if self.row < 0 or self.row > 7 or self.column < 0 or self.column > 7:
-            self.square = None
-            return
+            self._square = None
+            return None
 
         self._square = chr(self.column + ord('a')) + str(8 - self.row)
+        return self._square
 
     @property
     def row(self):

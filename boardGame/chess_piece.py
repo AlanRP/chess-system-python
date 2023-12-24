@@ -22,6 +22,7 @@ class ChessPiece(Piece):
 class Pawn(ChessPiece):
     def possible_moves(self):
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         if self.color == Color.WHITE:
             # Check one square above
@@ -29,6 +30,7 @@ class Pawn(ChessPiece):
             if self.board._position_exists(*p.position):
                 if not self.board._is_there_a_piece(*p.position):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
             # Check two square above and if it's first move
             p = Position((self.position.row - 2, self.position.column))
@@ -36,24 +38,28 @@ class Pawn(ChessPiece):
                 if self.board._position_exists(*p.position):
                     if not self.board._is_there_a_piece(*p.position):
                         self.moves_mat[p.row][p.column] = True
+                        self.possibles.append((p.row, p.column))
 
             # Check capture diagonal square left
             p = Position((self.position.row - 1, self.position.column - 1))
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
             # Check capture diagonal square right
             p = Position((self.position.row - 1, self.position.column + 1))
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
         else:   # Black color piece
             p = Position((self.position.row + 1, self.position.column))
             if self.board._position_exists(*p.position):
                 if not self.board._is_there_a_piece(*p.position):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
             # Check two square below and if it's first move
             p = Position((self.position.row + 2, self.position.column))
@@ -61,18 +67,21 @@ class Pawn(ChessPiece):
                 if self.board._position_exists(*p.position):
                     if not self.board._is_there_a_piece(*p.position):
                         self.moves_mat[p.row][p.column] = True
+                        self.possibles.append((p.row, p.column))
 
             # Check capture diagonal square left
             p = Position((self.position.row + 1, self.position.column - 1))
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
             # Check capture diagonal square right
             p = Position((self.position.row + 1, self.position.column + 1))
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -83,6 +92,7 @@ class Pawn(ChessPiece):
 class Rook(ChessPiece):
     def possible_moves(self) -> bool:
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         # Searching moves for Rook
         for r, c in cross_moves.values():
@@ -90,11 +100,13 @@ class Rook(ChessPiece):
             while (self.board._position_exists(*p.position) and not
                     self.board._is_there_a_piece(*p.position)):
                 self.moves_mat[p.row][p.column] = True
+                self.possibles.append((p.row, p.column))
                 p.row += r
                 p.column += c
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -110,6 +122,7 @@ class Knight(ChessPiece):
 
     def possible_moves(self):
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         # Searching moves for Knight
         for r, c in knight_moves.values():
@@ -117,6 +130,7 @@ class Knight(ChessPiece):
             if (self.board._position_exists(*p.position) and
                     self.can_move(p)):
                 self.moves_mat[p.row][p.column] = True
+                self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -127,6 +141,7 @@ class Knight(ChessPiece):
 class Bishop(ChessPiece):
     def possible_moves(self) -> bool:
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         # Searching moves for Bishop
         for r, c in x_moves.values():
@@ -134,11 +149,13 @@ class Bishop(ChessPiece):
             while (self.board._position_exists(*p.position) and not
                     self.board._is_there_a_piece(*p.position)):
                 self.moves_mat[p.row][p.column] = True
+                self.possibles.append((p.row, p.column))
                 p.row += r
                 p.column += c
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -149,6 +166,7 @@ class Bishop(ChessPiece):
 class Queen(ChessPiece):
     def possible_moves(self) -> bool:
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         # Searching moves for Queen
         for r, c in moves_all.values():
@@ -156,11 +174,14 @@ class Queen(ChessPiece):
             while (self.board._position_exists(*p.position) and not
                     self.board._is_there_a_piece(*p.position)):
                 self.moves_mat[p.row][p.column] = True
+                self.possibles.append((p.row, p.column))
+
                 p.row += r
                 p.column += c
             if self.board._position_exists(*p.position):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
+                    self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
@@ -176,6 +197,7 @@ class King(ChessPiece):
 
     def possible_moves(self):
         self.moves_mat = [[False] * 8 for _ in range(8)]
+        self.possibles = []
 
         # Searching moves for King
         for r, c in moves_all.values():
@@ -183,6 +205,7 @@ class King(ChessPiece):
             if (self.board._position_exists(*p.position) and
                     self.can_move(p)):
                 self.moves_mat[p.row][p.column] = True
+                self.possibles.append((p.row, p.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
