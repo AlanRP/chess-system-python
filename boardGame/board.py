@@ -11,8 +11,12 @@ class Board:
     def piece(self, row: int, column: int) -> Piece | None:
         return self._pieces[row][column]
 
-    def piece_pos(self, position):
-        return self._pieces[[position.row], [position.column]]
+    def piece_from_position(self, position: Position) -> Piece | None:
+        return self._pieces[position.row][position.column]
+
+    def piece_from_square(self, square: str) -> Piece | None:
+        row, column = Position(square).position
+        return self._pieces[row][column]
 
     def _place_piece(self, piece: Piece):
         row, column = piece.position.position

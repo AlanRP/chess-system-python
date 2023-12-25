@@ -1,7 +1,7 @@
 from termcolor import cprint
 from boardGame.UI import UI
 from boardGame.board import Board
-from boardGame.chess_piece import ChessPiece, King
+from boardGame.chess_piece import ChessPiece, King, Rook
 from boardGame.piece import Piece
 from boardGame.player import Player
 from boardGame.utility import Color, Position
@@ -46,6 +46,8 @@ class ChessGame:
                     from_square = self._UI.get_source_move(player)
 
                     if not self._validate_source(player, from_square):
+                        msg = (f"Invalid source seletion: "
+                               f"'{from_square}', try again.")
                         continue
 
                     possible_moves = self._possibleMoves(from_square)
@@ -55,6 +57,8 @@ class ChessGame:
                     to_square = self._UI.get_target_move(player)
 
                     if not self._validate_target(from_square, to_square):
+                        msg = (f"Invalid source seletion: "
+                               f"'{to_square}', try again.")
                         continue
 
                     move_made = self._move_piece(
@@ -77,10 +81,17 @@ class ChessGame:
 
         print('Game Over!')
 
+    # ************** Edit _possibleMoves to include
+        # validate conditions for castling
+
     def _possibleMoves(self, from_square) -> bool:
         row, column = Position(from_square).position
 
         piece: Piece = self._board.piece(row, column)
+
+        if isinstance(piece, King):
+            piece.queen_side_castling = self._possible_L_castling(piece)
+            piece.king_side_castling = self._possible_R_castling(piece)
 
         piece.possible_moves()
         if not piece.is_there_any_possible_move():
@@ -91,8 +102,103 @@ class ChessGame:
             raise ''
         return piece.moves_mat
 
+    def _possible_L_castling(self, piece: ChessPiece):
+
+        # L castling is the queen side castling
+        if self.check or piece.move_count > 0:
+            return False
+
+        row = piece.position.row
+
+        _rook: Rook | None = None
+        _rook = self._board._pieces[row][0]
+
+        if (not isinstance(_rook, Rook) or _rook.move_count > 0):
+            return False
+
+        if self._board._pieces[row][1:4] != [None, None, None]:
+            return False
+        return True
+
+    def _possible_R_castling(self, piece: ChessPiece) -> bool:
+
+        # L castling is the king side castling
+        if self.check or piece.move_count > 0:
+            return False
+
+        row = piece.position.row
+
+        _rook: Rook | None = None
+        _rook = self._board._pieces[row][7]
+
+        if (not isinstance(_rook, Rook) or _rook.move_count > 0):
+            return False
+
+        if self._board._pieces[row][5:7] != [None, None]:
+            return False
+        return True
+
+    def is_castling_move(self, from_square, to_square) -> int:
+        """
+            possible return -> 0, 1, 2
+            - 0 not castling
+            - 1 king side castling
+            - 2 queen side castling
+        """
+        self._piece = self._board.piece_from_square(from_square)
+        if not isinstance(self._piece, King):
+            return 0
+
+        to_col = Position(to_square).column
+        from_col = Position(from_square).column
+        if from_col == 4:       # Initial position
+            if to_col == 6:     # Column 'F' King side castling
+                return 1
+            elif to_col == 2:   # Column 'B' Queen side castling
+                return 2
+        return 0
+
+    def _perform_castling(self, from_square, to_square, color, side) -> bool:
+        # side 1 = King  side castling
+        # side 2 = Queen side castling
+        row, col = Position(from_square).position
+        col = (col + 1) if side == 1 else (col - 1)
+
+        _rook_col = 7 if side == 1 else 0
+
+        midlle_square = Position((row, col)).square
+        _rook_square = Position((row, _rook_col)).square
+
+        self._perform_move(from_square, midlle_square)
+
+        if self._is_check(color):
+            self._board._undo_move(from_square, midlle_square, None)
+            self.warning(
+                f"Cannot castling because square '{midlle_square} is in check")
+            return False
+
+        self._perform_move(midlle_square, to_square)
+        self._piece.increase_move_count()
+        _piece = self._piece
+        self._perform_move(_rook_square, midlle_square)
+
+        if self._is_check(color):
+            self._board._undo_move(_rook_square, midlle_square, None)
+            self._board._undo_move(from_square, to_square, None)
+            self.warning("You cannot let your king in check.")
+            self._piece = _piece
+            self._piece.decrease_move_count()
+            return False
+
+        return True
+
     def _move_piece(self, from_square, to_square, color) -> bool:
-        captured = self._perform_move(from_square, to_square)
+
+        _side = self.is_castling_move(from_square, to_square)
+        if _side:
+            self._perform_castling(from_square, to_square, color, _side)
+        else:
+            captured = self._perform_move(from_square, to_square)
 
         if self._is_check(color):
             self._board._undo_move(from_square, to_square, captured)

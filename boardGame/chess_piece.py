@@ -126,7 +126,7 @@ class Rook(ChessPiece):
 
 
 class Knight(ChessPiece):
-    def can_move(self, position: Position):
+    def _can_move(self, position: Position):
         row, column = position.position
         p = self.board._pieces[row][column]
         return p is None or p.color != self.color
@@ -139,7 +139,7 @@ class Knight(ChessPiece):
         for r, c in knight_moves.values():
             p = Position((self.position.row + r, self.position.column + c))
             if (self.board._position_exists(*p.position) and
-                    self.can_move(p)):
+                    self._can_move(p)):
                 self.moves_mat[p.row][p.column] = True
                 self.possibles.append((p.row, p.column))
 
@@ -201,7 +201,28 @@ class Queen(ChessPiece):
 
 
 class King(ChessPiece):
-    def can_move(self, position: Position):
+    def __init__(self, color: Color, position: Position, board) -> None:
+        super().__init__(color, position, board)
+        self._queen_side_castling: bool = False
+        self._king_side_castling: bool = False
+
+    @property
+    def queen_side_castling(self):
+        return self._queen_side_castling
+
+    @queen_side_castling.setter
+    def queen_side_castling(self, value: bool):
+        self._queen_side_castling = value
+
+    @property
+    def king_side_castling(self):
+        return self._king_side_castling
+
+    @king_side_castling.setter
+    def king_side_castling(self, value: bool):
+        self._king_side_castling = value
+
+    def _can_move(self, position: Position):
         row, column = position.position
         p = self.board._pieces[row][column]
         return p is None or p.color != self.color
@@ -210,11 +231,21 @@ class King(ChessPiece):
         self.moves_mat = [[False] * 8 for _ in range(8)]
         self.possibles = []
 
+        # special castling move
+        row = self.position.row
+        if self._queen_side_castling:
+            self.moves_mat[row][2] = True
+            self.possibles.append((row, 2))
+
+        if self._king_side_castling:
+            self.moves_mat[row][6] = True
+            self.possibles.append((row, 6))
+
         # Searching moves for King
         for r, c in moves_all.values():
             p = Position((self.position.row + r, self.position.column + c))
             if (self.board._position_exists(*p.position) and
-                    self.can_move(p)):
+                    self._can_move(p)):
                 self.moves_mat[p.row][p.column] = True
                 self.possibles.append((p.row, p.column))
 
