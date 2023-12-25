@@ -18,7 +18,7 @@ class ChessPiece(Piece):
         self._move_count += 1
 
     def decrease_move_count(self):
-        self._move_count += 1
+        self._move_count -= 1
 
     def _is_there_opponent_piece(self, position: Position) -> bool:
         row, column = position.position

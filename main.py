@@ -81,8 +81,41 @@ class ChessGame:
 
         print('Game Over!')
 
-    # ************** Edit _possibleMoves to include
-        # validate conditions for castling
+    def _move_piece(self, from_square, to_square, color) -> bool:
+
+        _side = self._is_castling_move(from_square, to_square)
+        castling_ok = True
+        if _side:
+            castling_ok = self._perform_castling(
+                from_square, to_square, color, _side)
+        else:
+            captured = self._perform_move(from_square, to_square)
+
+        if self._is_check(color):
+            self._board._undo_move(from_square, to_square, captured)
+            self.warning("You cannot let your king in check.")
+            return False
+
+        if _side and not castling_ok:
+            # If the caltling move is not successful,
+            # neither increases move_count nor passes the turn
+            return False
+
+        self._piece.increase_move_count()
+        self._piece = None
+
+        if self._is_checkmate(self._opponent_color(color)):
+            self.checkmate = True
+            self._UI.display_game_over(self._current_player())
+
+        return True
+
+    def _perform_move(self, from_square, to_square) -> Piece:
+
+        row, column = Position(from_square).position
+        self._piece = self._board._remove_piece(row, column)
+        self._piece.position = Position(to_square)
+        return self._board._place_piece(self._piece)  # captured piece
 
     def _possibleMoves(self, from_square) -> bool:
         row, column = Position(from_square).position
@@ -138,7 +171,7 @@ class ChessGame:
             return False
         return True
 
-    def is_castling_move(self, from_square, to_square) -> int:
+    def _is_castling_move(self, from_square, to_square) -> int:
         """
             possible return -> 0, 1, 2
             - 0 not castling
@@ -174,7 +207,8 @@ class ChessGame:
         if self._is_check(color):
             self._board._undo_move(from_square, midlle_square, None)
             self.warning(
-                f"Cannot castling because square '{midlle_square} is in check")
+                f"Cannot castling because square "
+                f"'{midlle_square}' is in check")
             return False
 
         self._perform_move(midlle_square, to_square)
@@ -191,35 +225,6 @@ class ChessGame:
             return False
 
         return True
-
-    def _move_piece(self, from_square, to_square, color) -> bool:
-
-        _side = self.is_castling_move(from_square, to_square)
-        if _side:
-            self._perform_castling(from_square, to_square, color, _side)
-        else:
-            captured = self._perform_move(from_square, to_square)
-
-        if self._is_check(color):
-            self._board._undo_move(from_square, to_square, captured)
-            self.warning("You cannot let your king in check.")
-            return False
-
-        self._piece.increase_move_count()
-        self._piece = None
-
-        if self._is_checkmate(self._opponent_color(color)):
-            self.checkmate = True
-            self._UI.display_game_over(self._current_player())
-
-        return True
-
-    def _perform_move(self, from_square, to_square) -> Piece:
-
-        row, column = Position(from_square).position
-        self._piece = self._board._remove_piece(row, column)
-        self._piece.position = Position(to_square)
-        return self._board._place_piece(self._piece)  # captured piece
 
     def _validate_target(self, from_square, to_square):
 
