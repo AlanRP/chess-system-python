@@ -1,7 +1,7 @@
 from termcolor import cprint
 from boardGame.UI import UI
 from boardGame.board import Board
-from boardGame.chess_piece import ChessPiece, King, Rook
+from boardGame.chess_piece import ChessPiece, King, Pawn, Rook
 from boardGame.piece import Piece
 from boardGame.player import Player
 from boardGame.utility import Color, Position
@@ -13,8 +13,7 @@ class ChessGame:
             self,
             board: Board,
             player1: Player,
-            player2: Player,
-            _piece: ChessPiece | None = None
+            player2: Player
     ):
         self._board = board
         self._player1 = player1
@@ -23,6 +22,7 @@ class ChessGame:
         self.turn = True
         self.check = False
         self.checkmate = False
+        self._piece: ChessPiece | None = None
 
     def play(self):
         self._board.setup_board()
@@ -81,34 +81,88 @@ class ChessGame:
 
         print('Game Over!')
 
+    def _is_enPassant_move(self, from_square, to_square, color) -> bool:
+        """
+            Verify if is an "En Passant" move
+        """
+        self._piece = self._board.piece_from_square(from_square)
+
+        if (not isinstance(self._piece, Pawn) or
+                self._board.enPassantVulnerable is None):
+            return False
+
+        if (color == Color.WHITE and
+                Position(from_square).row != 3):
+            return False
+
+        if (color == Color.BLACK and
+                Position(from_square).row != 4):
+            return False
+
+        passant: Position = self._board.enPassantVulnerable
+        to_col = Position(to_square).column
+
+        if passant.column != to_col:
+            return False
+
+        return True
+
     def _move_piece(self, from_square, to_square, color) -> bool:
 
-        _side = self._is_castling_move(from_square, to_square)
+        _castling_side = self._is_castling_move(from_square, to_square)
         castling_ok = True
-        if _side:
+
+        en_passant = self._is_enPassant_move(from_square, to_square, color)
+
+        if _castling_side:
             castling_ok = self._perform_castling(
-                from_square, to_square, color, _side)
+                from_square, to_square, color, _castling_side)
+
+        elif en_passant:
+
+            captured = self._perform_enPassant(from_square, to_square)
         else:
             captured = self._perform_move(from_square, to_square)
 
         if self._is_check(color):
             self._board._undo_move(from_square, to_square, captured)
+
+            if en_passant:
+                p_removed = self._board._removed_pieces.pop()
+                p_removed.position = self._board.enPassantVulnerable
+                self._board._place_piece(p_removed)
+
             self.warning("You cannot let your king in check.")
             return False
 
-        if _side and not castling_ok:
-            # If the caltling move is not successful,
-            # neither increases move_count nor passes the turn
+        # If the caltling move is not successful,
+        # neither increases move_count nor passes the turn
+        if _castling_side and not castling_ok:
             return False
 
         self._piece.increase_move_count()
-        self._piece = None
+        # self._piece = None
 
         if self._is_checkmate(self._opponent_color(color)):
             self.checkmate = True
             self._UI.display_game_over(self._current_player())
 
+        if isinstance(self._piece, Pawn):
+            self._possible_enPassant(from_square, to_square)
+
         return True
+
+    def _possible_enPassant(self, from_square, to_square):
+        self._board.enPassantVulnerable = None
+        from_row = Position(from_square).row
+        to_row = Position(to_square).row
+        if abs(to_row - from_row) == 2:
+            self._board.enPassantVulnerable = self._piece.position
+
+    def _perform_enPassant(self, from_square, to_square) -> Piece:
+        passant_square = self._board.enPassantVulnerable.square
+        self._perform_move(passant_square, to_square)
+        self._perform_move(from_square, to_square)
 
     def _perform_move(self, from_square, to_square) -> Piece:
 
@@ -132,7 +186,6 @@ class ChessGame:
                 f"There is NO possible moves for the chosen "
                 f"piece {piece} on '{from_square}'."
             )
-            raise ''
         return piece.moves_mat
 
     def _possible_L_castling(self, piece: ChessPiece):

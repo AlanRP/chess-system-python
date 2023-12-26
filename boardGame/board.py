@@ -7,6 +7,7 @@ class Board:
     def __init__(self) -> None:
         self._pieces = [[None] * 8 for _ in range(8)]
         self._removed_pieces = []
+        self.enPassantVulnerable: Position | None = None
 
     def piece(self, row: int, column: int) -> Piece | None:
         return self._pieces[row][column]

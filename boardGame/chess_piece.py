@@ -65,6 +65,14 @@ class Pawn(ChessPiece):
                     self.moves_mat[p.row][p.column] = True
                     self.possibles.append((p.row, p.column))
 
+            # Check capture diagonal en Passant
+            passant: Position = self.board.enPassantVulnerable
+            if (passant is not None and
+                    self.position.row == passant.row == 3 and
+                    abs(self.position.column - passant.column) == 1):
+                self.moves_mat[passant.row - 1][passant.column] = True
+                self.possibles.append((passant.row - 1, passant.column))
+
         else:   # Black color piece
             p = Position((self.position.row + 1, self.position.column))
             if self.board._position_exists(*p.position):
@@ -93,6 +101,14 @@ class Pawn(ChessPiece):
                 if self._is_there_opponent_piece(p):
                     self.moves_mat[p.row][p.column] = True
                     self.possibles.append((p.row, p.column))
+
+            # Check capture diagonal en Passant
+            passant: Position = self.board.enPassantVulnerable
+            if (passant is not None and
+                    self.position.row == passant.row == 4 and
+                    abs(self.position.column - passant.column) == 1):
+                self.moves_mat[passant.row + 1][passant.column] = True
+                self.possibles.append((passant.row + 1, passant.column))
 
     def __str__(self) -> str:
         if self.color == Color.WHITE:
