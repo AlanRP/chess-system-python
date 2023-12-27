@@ -1,7 +1,8 @@
 from termcolor import cprint
 from boardGame.UI import UI
 from boardGame.board import Board
-from boardGame.chess_piece import ChessPiece, King, Pawn, Rook
+from boardGame.chess_piece import (
+    Bishop, ChessPiece, King, Knight, Pawn, Queen, Rook)
 from boardGame.piece import Piece
 from boardGame.player import Player
 from boardGame.utility import Color, Position
@@ -37,45 +38,45 @@ class ChessGame:
             while not move_made:
                 possible_moves = [[False] * 8 for _ in range(8)]
 
-                try:
-                    self._UI.display_game(possible_moves)
+                # try:
+                self._UI.display_game(possible_moves)
 
-                    self.check = self._is_check(player.color)
-                    self._UI.print_msg(msg, self.check)
+                self.check = self._is_check(player.color)
+                self._UI.print_msg(msg, self.check)
 
-                    from_square = self._UI.get_source_move(player)
+                from_square = self._UI.get_source_move(player)
 
-                    if not self._validate_source(player, from_square):
-                        msg = (f"Invalid source seletion: "
-                               f"'{from_square}', try again.")
-                        continue
+                if not self._validate_source(player, from_square):
+                    msg = (f"Invalid source seletion: "
+                           f"'{from_square}', try again.")
+                    continue
 
-                    possible_moves = self._possibleMoves(from_square)
+                possible_moves = self._possibleMoves(from_square)
 
-                    self._UI.display_game(possible_moves)
+                self._UI.display_game(possible_moves)
 
-                    to_square = self._UI.get_target_move(player)
+                to_square = self._UI.get_target_move(player)
 
-                    if not self._validate_target(from_square, to_square):
-                        msg = (f"Invalid source seletion: "
-                               f"'{to_square}', try again.")
-                        continue
+                if not self._validate_target(from_square, to_square):
+                    msg = (f"Invalid source seletion: "
+                           f"'{to_square}', try again.")
+                    continue
 
-                    move_made = self._move_piece(
-                        from_square, to_square, player.color)
+                move_made = self._move_piece(
+                    from_square, to_square, player.color)
 
-                    if move_made:
-                        msg = None
-                    else:
-                        msg = f"Invalid move ('{from_square}' "\
-                            f"'{to_square}'), try again."
+                if move_made:
+                    msg = None
+                else:
+                    msg = f"Invalid move ('{from_square}' "\
+                        f"'{to_square}'), try again."
 
-                except Exception as e:
-                    if to_square is None:
-                        msg = f"Invalid seletion ('{from_square}'), try again"
-                    else:
-                        msg = (f"Invalid move ('{from_square}' "
-                               f"'{to_square}'), try again.\n{e}")
+                # except Exception as e:
+                #     if to_square is None:
+                #         msg = f"Invalid seletion ('{from_square}'), try again"
+                #     else:
+                #         msg = (f"Invalid move ('{from_square}' "
+                #                f"'{to_square}'), try again.\n{e}")
 
             self.turn = not self.turn
 
@@ -124,7 +125,11 @@ class ChessGame:
         else:
             captured = self._perform_move(from_square, to_square)
 
+        promoted = self._promotion(color, from_square, to_square)
+
         if self._is_check(color):
+            if promoted:
+                self._replace_piece(color, Position(to_square), Pawn)
             self._board._undo_move(from_square, to_square, captured)
 
             if en_passant:
@@ -141,7 +146,6 @@ class ChessGame:
             return False
 
         self._piece.increase_move_count()
-        # self._piece = None
 
         if self._is_checkmate(self._opponent_color(color)):
             self.checkmate = True
@@ -151,6 +155,49 @@ class ChessGame:
             self._possible_enPassant(from_square, to_square)
 
         return True
+
+    def _promotion(self, color, from_square, to_square):
+        if self._piece is None or not isinstance(self._piece, Pawn):
+            return False
+
+        if (color == Color.WHITE and self._piece.position.row != 0 or
+                color == Color.BLACK and self._piece.position.row != 7):
+            return False
+
+        _piece = self._pick_a_piece(from_square, to_square)
+
+        position = self._piece.position
+
+        self._replace_piece(color, position, _piece)
+
+        return True
+
+    def _pick_a_piece(self, from_square, to_square) -> Piece:
+        move = f"'{from_square} - {to_square}'"
+        letter = "_"
+
+        while letter not in 'QRBN':
+            self._UI.display_game()
+            print()
+            cprint(f"Move {move} - Promotion", "yellow")
+            print()
+            letter = input("Choose a piece for promotion Q | R | B | N: ")
+            letter = letter.strip().upper()
+
+        return self._select_piece(letter)
+
+    def _select_piece(self, letter):
+        if letter == "R":
+            return Rook
+        if letter == "B":
+            return Bishop
+        if letter == "N":
+            return Knight
+        return Queen
+
+    def _replace_piece(self, color,  position, piece):
+        self._board._pieces[position.row][position.column] = None
+        self._board._place_piece(piece(color, position, self._board))
 
     def _possible_enPassant(self, from_square, to_square):
         self._board.enPassantVulnerable = None
@@ -334,11 +381,14 @@ class ChessGame:
         for row_list in self._board._pieces:
             for p in row_list:
                 if p is not None and p.color == color:
-                    pieces.append(p)
+                    if isinstance(p, King):
+                        pieces.insert(0, p)
+                    else:
+                        pieces.append(p)
         for p in pieces:
             p.possible_moves()
-            for i in range(7):
-                for j in range(7):
+            for i in range(8):
+                for j in range(8):
                     if p.moves_mat[i][j]:
                         from_square = p.position.square
                         to_square = Position((i, j)).square
