@@ -14,7 +14,7 @@ def main():
     UI = game._UI
     msg = None
 
-    while not game.is_game_over():
+    while not (game.checkmate or game.stalemate):
         move_made = False
         from_square = None
         to_square = None
@@ -26,7 +26,7 @@ def main():
             try:
                 UI.display_game(possible_moves)
 
-                game.check = game._is_check(player.color)
+                # game.check = game._is_check(player.color)
                 UI.print_msg(msg, game.check)
 
                 from_square = UI.get_source_move(player)
@@ -37,6 +37,10 @@ def main():
                     continue
 
                 possible_moves = game._possibleMoves(from_square)
+
+                if possible_moves is None:
+                    msg = f"Piece on '{from_square}' cannot move, try again."
+                    continue
 
                 UI.display_game(possible_moves)
 

@@ -24,6 +24,13 @@ class UI:
         cprint(f"{player.name} <{player.color.name}> won!", "light_yellow")
         print()
 
+    def display_stalemate(self, color):
+        self.display_game()
+        cprint("DRAW by stalemate!!!", "light_yellow")
+        print()
+        cprint(f"{color.name} has no possible move!", "light_yellow")
+        print()
+
     def display_game(self, possible_moves=None):
         os.system("cls")
         cprint("\t ***     CHESS GAME    *** \n")

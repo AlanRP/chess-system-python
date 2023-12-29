@@ -22,6 +22,7 @@ class ChessMatch:
         self.turn = True
         self.check = False
         self.checkmate = False
+        self.stalemate = False
         self._piece: ChessPiece | None = None
 
     def _move_piece(self, from_square, to_square, color: Color) -> bool:
@@ -75,9 +76,11 @@ class ChessMatch:
 
         self._piece.increase_move_count()
 
-        if self._is_checkmate(self._opponent_color(color)):
-            self.checkmate = True
-            self._UI.display_game_over(self._current_player())
+        if self.is_game_over(self._opponent_color(color)):
+            if self.checkmate:
+                self._UI.display_game_over(self._current_player())
+            elif self.stalemate:
+                self._UI.display_stalemate(self._opponent_color(color))
 
         if isinstance(self._piece, Pawn):
             self._possible_enPassant(from_square, to_square)
@@ -124,7 +127,7 @@ class ChessMatch:
 
     def _is_enPassant_move(self, from_square, to_square, color) -> bool:
         """
-            Verify if the current move is an "En Passant"
+        Checks whether the current move is an "En Passant"
         """
         self._piece = self._board.piece_from_square(from_square)
 
@@ -247,6 +250,7 @@ class ChessMatch:
                 f"There is NO possible moves for the chosen "
                 f"piece {piece} on '{from_square}'."
             )
+            return None
         return piece.moves_mat
 
     def _possible_L_castling(self, piece: ChessPiece) -> bool:
@@ -359,19 +363,6 @@ class ChessMatch:
 
         return True
 
-    def _is_check(self, color: Color) -> bool:
-        """
-        Checks if the king in the selected 'color' is in 'check'.
-        """
-        row, col = self._search_king_position(color)
-        pieces = self._opponent_pieces(color)
-
-        for p in pieces:
-            p.possible_moves()
-            if (row, col) in p.possibles:
-                return True
-        return False
-
     def _opponent_color(self, color: Color) -> Color:
         """Returns the opposite color"""
         return Color.BLACK if color == Color.WHITE else Color.WHITE
@@ -388,35 +379,62 @@ class ChessMatch:
 
         return [p for sub_lst in _pieces for p in sub_lst if p_color(p)]
 
-    def _one_color_pieces(self, color: Color) -> list:
+    def _one_color_pieces(self, color: Color, king_first=False) -> list:
         """
-        Returns the list of chess pieces in the selected color.
+        Returns the list of chess pieces on board in the selected color.
 
-        The first piece on the list returned is the King,
+        If king_first, it will be the first in the list result,
         to give more performance when checking if it is not in check.
         """
         pieces = []
         for row_list in self._board._pieces:
             for p in row_list:
                 if p is not None and p.color == color:
-                    if isinstance(p, King):
+                    if king_first and isinstance(p, King):
                         pieces.insert(0, p)
                     else:
                         pieces.append(p)
         return pieces
 
-    def _is_checkmate(self, color: Color) -> bool:
-        """Checks if the king in the selected 'color' is in 'checkmate'.
+    def _is_check(self, color: Color) -> bool:
         """
-        if not self._is_check(color):
-            return False
+        Checks if the king in the selected 'color' is in 'check'.
+        """
+        row, col = self._search_king_position(color)
+        # pieces = self._opponent_pieces(color)
+        opponent_pieces = self._one_color_pieces(self._opponent_color(color))
 
-        pieces = self._one_color_pieces(color)
-
-        for p in pieces:
+        for p in opponent_pieces:
             p.possible_moves()
-            for i, j in p.possibles:
+            if (row, col) in p.possibles:
+                return True
+        return False
 
+    def is_game_over(self, color: Color) -> bool:
+        """
+        Tests: < check >  < checkmate >  < stalemate >
+
+        If check and there's no move = checkmate
+        If not check and there's no move = stalemate
+        """
+        self.check = self._is_check(color)
+
+        if self.check:
+            self.stalemate = False
+            self.checkmate = self._is_possible_move(color)
+        else:
+            self.checkmate = False
+            self.stalemate = self._is_possible_move(color)
+
+        return self.checkmate or self.stalemate
+
+    def _is_possible_move(self, color) -> bool:
+        """
+        Tests is there is a possible move for next player
+        """
+        pieces = self._one_color_pieces(color, True)
+        for p in pieces:
+            for i, j in p.possibles:
                 if p.moves_mat[i][j]:
                     from_square = p.position.square
                     to_square = Position((i, j)).square
@@ -427,7 +445,6 @@ class ChessMatch:
                         from_square, to_square, captured)
                     if not check:
                         return False
-
         return True
 
     def _search_king_position(self, color: Color) -> tuple:
@@ -476,10 +493,3 @@ class ChessMatch:
         if self.turn:
             return self._player1
         return self._player2
-
-    # todo stalemate logic
-    def is_game_over(self) -> bool:
-        """
-        Checks if t"""
-        return self.checkmate
-        # return self.is_checkmate() or self._board.is_stalemate()

@@ -79,7 +79,3 @@ class Board:
             self._place_piece(captured_piece)
             if len(self._removed_pieces):
                 self._removed_pieces.pop()
-
-    def is_stalemate(self):
-        ...
-        # verificar se está empatado.
